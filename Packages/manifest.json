@@ -4,6 +4,7 @@
     "com.unity.feature.development": "1.0.1",
     "com.unity.ml-agents": "file:D:/2024.01.01.-/RL_Project/ml-agents/com.unity.ml-agents",
     "com.unity.ml-agents.extensions": "file:D:/2024.01.01.-/RL_Project/ml-agents/com.unity.ml-agents.extensions",
+    "com.unity.nuget.newtonsoft-json": "3.2.1",
     "com.unity.textmeshpro": "3.0.6",
     "com.unity.timeline": "1.7.5",
     "com.unity.ugui": "1.0.0",

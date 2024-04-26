@@ -4,39 +4,137 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using UnityEngine;
+using Newtonsoft.Json;
 
 [Serializable]
-public struct LevelSetting
+public struct EnvData
 {
-    public int Level;
-    public List<Vector2> Obstacles;
-    public Vector2 TargetPosition;
-    public int TargetDirection;
-    public Vector2 StartPosition;
-    public int StartDirection;
-}
-
-[Serializable]
-public struct LevelPool
-{
-    public int Level;
-    public List<LevelSetting> LevelSettings;
+    public string Name;
+    public List<int> Directions;
+    public List<List<int>> Env;
 }
 
 [Serializable]
 public struct EnvPool
 {
-    public List<LevelPool> Pool;
+    public List<EnvData> Env;
 }
 
 public class EnvManager : MonoBehaviour
 {
+    #region Prefab
+    public GameObject preFloor;
+    public GameObject preObstacle;
+    public GameObject preTarget;
+    public GameObject preAgent;
+    #endregion
+
+    #region Wall
     public GameObject Floor;
-    public GameObject Obstacle;
-    public GameObject Target;
-    public GameObject Agent;
+    public GameObject North;
+    public GameObject East;
+    public GameObject South;
+    public GameObject West;
+    #endregion Wall
+
+    #region Obstacle
+    List<GameObject> Obstacles;
+    #endregion Obstacle
 
     public EnvPool Pool;
+
+    public int EnvIndex = 0;
+
+    private string ObjectToJson(object obj)
+    {
+        return JsonConvert.SerializeObject(obj);
+    }
+
+    private T LoadJsonFile<T>(string loadPath, string fileName)
+    {
+        FileStream fileStream = new FileStream(string.Format("{0}/{1}.json", loadPath, fileName), FileMode.Open);
+        byte[] data = new byte[fileStream.Length];
+        fileStream.Read(data, 0, data.Length);
+        fileStream.Close(); string jsonData = Encoding.UTF8.GetString(data);
+        return JsonConvert.DeserializeObject<T>(jsonData);
+    }
+
+    private void CreateJsonFile(string createPath, string fileName, string jsonData)
+    {
+        FileStream fileStream = new FileStream(string.Format("{0}/{1}.json", createPath, fileName), FileMode.Create);
+        byte[] data = Encoding.UTF8.GetBytes(jsonData);
+        fileStream.Write(data, 0, data.Length);
+        fileStream.Close();
+    }
+
+    private void InitializeLevel()
+    {
+        if (Obstacles == null)
+        {
+            Obstacles = new List<GameObject>();
+
+            // 일단 Floor를 깝니다.
+            Floor = Instantiate(preFloor, Vector3.zero, Quaternion.identity, transform);
+            Floor.transform.localScale = new Vector3(5, 1, 5);
+
+            #region Wall
+            // North
+            North = Instantiate(preObstacle, Vector3.zero, Quaternion.identity, transform);
+            North.transform.localScale = new Vector3(6, 1, 1);
+            North.transform.position = new Vector4(0, 0.5f, 3);
+
+            // East
+            East = Instantiate(preObstacle, Vector3.zero, Quaternion.identity, transform);
+            East.transform.localScale = new Vector3(1, 1, 6);
+            East.transform.position = new Vector4(3, 0.5f, 0);
+
+            // South
+            South = Instantiate(preObstacle, Vector3.zero, Quaternion.identity, transform);
+            South.transform.localScale = new Vector3(6, 1, 1);
+            South.transform.position = new Vector4(0, 0.5f, -3);
+
+            // West
+            West = Instantiate(preObstacle, Vector3.zero, Quaternion.identity, transform);
+            West.transform.localScale = new Vector3(1, 1, 6);
+            West.transform.position = new Vector4(-3, 0.5f, 0);
+            #endregion Wall
+
+            #region Obstacles
+            for (int idxY = 2; idxY > -3; idxY--)
+            {
+                for (int idxX = -2; idxX < 3; idxX++)
+                {
+                    GameObject _ = Instantiate(preObstacle, new Vector3(idxX, 0.5f, idxY), Quaternion.identity, transform);
+                    Obstacles.Add(_);
+                }
+            }
+            #endregion Obstacles
+        }
+    }
+
+    private void GenerateLevel(EnvData env)
+    {
+        int ObstacleIndex = 0;
+
+        foreach (List<int> row in env.Env)
+        {
+            foreach (int status in row)
+            {
+                if (status == 0)
+                {
+                    Obstacles[ObstacleIndex].SetActive(false);
+                }
+                else if (status == -1)
+                {
+                    Obstacles[ObstacleIndex].SetActive(true);
+                }
+
+                ObstacleIndex++;
+            }
+        }
+    }
+
+    #region OnClick
 
     public void OnClickSave()
     {
@@ -49,123 +147,40 @@ public class EnvManager : MonoBehaviour
         Pool = LoadJsonFile<EnvPool>(Application.dataPath, "PoolData");
     }
 
+    public void OnClickInitialize()
+    {
+        InitializeLevel();
+    }
+
     public void OnClickGenerate()
     {
-        LevelSetting levelSetting = new LevelSetting();
-        levelSetting.Level = 7;
-        levelSetting.Obstacles = new List<Vector2>
-        {
-            new Vector2(-2, 2),
-            new Vector2(-1, 2),
-            new Vector2(-2, 1),
-            new Vector2(-1, 1),
-            new Vector2(1, 2),
-            new Vector2(1, 1),
-            new Vector2(2, 2),
-            new Vector2(2, 1),
-            new Vector2(-2, -1),
-            new Vector2(2, -1),
-            new Vector2(-1, -2),
-            new Vector2(0, -2),
-            new Vector2(1, -2)
-        };
-        levelSetting.TargetPosition = new Vector2(-3, 3);
-        levelSetting.TargetDirection = 1;
-        levelSetting.StartPosition = new Vector2(3, -3);
-        levelSetting.StartDirection = 3;
-        GenerateLevel(levelSetting);
+        GenerateLevel(Pool.Env[EnvIndex]);
     }
 
-    private string ObjectToJson(object obj)
+    public void OnClickRemove()
     {
-        return JsonUtility.ToJson(obj);
+
     }
 
-    private void CreateJsonFile(string createPath, string fileName, string jsonData)
+    public void OnClickPrev()
     {
-        FileStream fileStream = new FileStream(string.Format("{0}/{1}.json", createPath, fileName), FileMode.Create);
-        byte[] data = Encoding.UTF8.GetBytes(jsonData);
-        fileStream.Write(data, 0, data.Length);
-        fileStream.Close();
-    }
+        EnvIndex--;
 
-    private T LoadJsonFile<T>(string loadPath, string fileName)
-    {
-        FileStream fileStream = new FileStream(string.Format("{0}/{1}.json", loadPath, fileName), FileMode.Open);
-        byte[] data = new byte[fileStream.Length];
-        fileStream.Read(data, 0, data.Length);
-        fileStream.Close(); string jsonData = Encoding.UTF8.GetString(data);
-        return JsonUtility.FromJson<T>(jsonData);
-    }
-
-    private void GenerateLevel(LevelSetting _level)
-    {
-        // 일단 Floor를 깝니다.
-        GameObject Floor = Instantiate(this.Floor, Vector3.zero, Quaternion.identity, transform);
-
-        // Level에 맞게 x, z축으로 스케일 업
-        Floor.transform.localScale = new Vector3(_level.Level, 1, _level.Level);
-
-        // 가장 자리에 Obstacle을 순서대로 배치. 
-        // North
-        GameObject North = Instantiate(Obstacle, Vector3.zero, Quaternion.identity, transform);
-        North.transform.localScale = new Vector3(_level.Level + 1, 1, 1);
-        North.transform.position = new Vector4(0, 0.5f, _level.Level / 2 + 1);
-        // East
-        GameObject East = Instantiate(Obstacle, Vector3.zero, Quaternion.identity, transform);
-        East.transform.localScale = new Vector3(1, 1, _level.Level + 1);
-        East.transform.position = new Vector4(_level.Level / 2 + 1, 0.5f, 0);
-        // South
-        GameObject South = Instantiate(Obstacle, Vector3.zero, Quaternion.identity, transform);
-        South.transform.localScale = new Vector3(_level.Level + 1, 1, 1);
-        South.transform.position = new Vector4(0, 0.5f, -_level.Level / 2 - 1);
-        // West
-        GameObject West = Instantiate(Obstacle, Vector3.zero, Quaternion.identity, transform);
-        West.transform.localScale = new Vector3(1, 1, _level.Level + 1);
-        West.transform.position = new Vector4(-_level.Level / 2 - 1, 0.5f, 0);
-
-        // Obstacle을 읽어들여서 해당 위치에 배치
-        foreach (Vector2 position in _level.Obstacles)
+        if (EnvIndex < 0)
         {
-            GameObject Obstacle = Instantiate(this.Obstacle, new Vector3(position.x, 0.5f, position.y), Quaternion.identity, transform);
-        }
-
-        // Target Position을 읽어들여 해당 위치에 배치
-        GameObject Target = Instantiate(this.Target, new Vector3(_level.TargetPosition.x, 0.5f, _level.TargetPosition.y), Quaternion.identity, transform);
-
-        // Target Direction을 읽어들여 회전 조정
-        switch (_level.TargetDirection)
-        {
-            case 0: // North
-                break;
-            case 1: // East
-                Target.transform.rotation = Quaternion.Euler(new Vector3(0, 90, 0));
-                break;
-            case 2: // South
-                Target.transform.rotation = Quaternion.Euler(new Vector3(0, 180, 0));
-                break;
-            case 3: // West
-                Target.transform.rotation = Quaternion.Euler(new Vector3(0, -90, 0));
-                break;
-        }
-
-        // Start Position을 읽어들여 해당 위치에 배치
-        GameObject Start = Instantiate(this.Agent, new Vector3(_level.StartPosition.x, 0.5f, _level.StartPosition.y), Quaternion.identity, transform);
-
-        // Start Direction을 읽어들여 회전 조정
-        switch (_level.StartDirection)
-        {
-            case 0: // North
-                break;
-            case 1: // East
-                Start.transform.rotation = Quaternion.Euler(new Vector3(0, 90, 0));
-                break;
-            case 2: // South
-                Start.transform.rotation = Quaternion.Euler(new Vector3(0, 180, 0));
-                break;
-            case 3: // West
-                Start.transform.rotation = Quaternion.Euler(new Vector3(0, -90, 0));
-                break;
+            EnvIndex = Pool.Env.Count - 1;
         }
     }
+
+    public void OnClickNext()
+    {
+        EnvIndex++;
+
+        if (EnvIndex == Pool.Env.Count)
+        {
+            EnvIndex = 0;
+        }
+    }
+
+    #endregion
 }
