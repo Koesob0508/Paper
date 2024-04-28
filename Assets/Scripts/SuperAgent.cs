@@ -80,53 +80,53 @@ public class SuperAgent : Agent
 
     public override void CollectObservations(VectorSensor sensor)
     {
-        CastRay();
+        //CastRay();
 
-        Vector2 goalXZ = new Vector2(goal.transform.position.x, goal.transform.position.z);
-        Vector2 positionXZ = new Vector2(this.transform.position.x, this.transform.position.z);
-        toTarget = goalXZ - positionXZ;
-        sensor.AddObservation(toTarget.normalized); // 2
+        //Vector2 goalXZ = new Vector2(goal.transform.position.x, goal.transform.position.z);
+        //Vector2 positionXZ = new Vector2(this.transform.position.x, this.transform.position.z);
+        //toTarget = goalXZ - positionXZ;
+        //sensor.AddObservation(toTarget.normalized); // 2
 
-        float relativeDistance = toTarget.magnitude / goalRadius;
-        sensor.AddObservation(relativeDistance); // 1
+        //float relativeDistance = toTarget.magnitude / goalRadius;
+        //sensor.AddObservation(relativeDistance); // 1
 
-        sensor.AddObservation(carRigidbody.velocity.x); // 1
-        sensor.AddObservation(carRigidbody.velocity.z); // 1
+        //sensor.AddObservation(carRigidbody.velocity.x); // 1
+        //sensor.AddObservation(carRigidbody.velocity.z); // 1
 
-        Vector2 rotationNomal = new Vector2(this.transform.rotation.normalized.y, this.transform.rotation.normalized.w);
-        sensor.AddObservation(rotationNomal); // 2
+        //Vector2 rotationNomal = new Vector2(this.transform.rotation.normalized.y, this.transform.rotation.normalized.w);
+        //sensor.AddObservation(rotationNomal); // 2
 
-        fromObstacle = Vector2.zero;
+        //fromObstacle = Vector2.zero;
 
-        obstacleCount = sortedObjects.Count;
+        //obstacleCount = sortedObjects.Count;
 
-        foreach(Vector3 sorted in sortedObjects)
-        {
-            fromObstacle.x += rayDistance - (positionXZ.x - sorted.x);
-            fromObstacle.y += rayDistance - (positionXZ.y - sorted.z);
-        }
+        //foreach(Vector3 sorted in sortedObjects)
+        //{
+        //    fromObstacle.x += rayDistance - (positionXZ.x - sorted.x);
+        //    fromObstacle.y += rayDistance - (positionXZ.y - sorted.z);
+        //}
 
-        if(sortedObjects.Count > 0)
-        {
-            fromObstacle /= sortedObjects.Count;
-        }
+        //if(sortedObjects.Count > 0)
+        //{
+        //    fromObstacle /= sortedObjects.Count;
+        //}
 
-        sensor.AddObservation(fromObstacle); // 2
+        //sensor.AddObservation(fromObstacle); // 2
     }
 
     public override void OnActionReceived(ActionBuffers actions)
     {
-        carController.horizontalInput = actions.ContinuousActions[0];
-        carController.verticalInput = actions.ContinuousActions[1];
-        if (actions.ContinuousActions[2] > 0)
-        {
-            carController.currentBrake = actions.ContinuousActions[2];
-            carController.isBraking = true;
-        }
-        else
-        {
-            carController.isBraking = false;
-        }
+        //carController.horizontalInput = actions.ContinuousActions[0];
+        //carController.verticalInput = actions.ContinuousActions[1];
+        //if (actions.ContinuousActions[2] > 0)
+        //{
+        //    carController.currentBrake = actions.ContinuousActions[2];
+        //    carController.isBraking = true;
+        //}
+        //else
+        //{
+        //    carController.isBraking = false;
+        //}
     }
 
     public override void Heuristic(in ActionBuffers actionsOut)
@@ -134,6 +134,7 @@ public class SuperAgent : Agent
         var continousActionsOut = actionsOut.ContinuousActions;
         continousActionsOut[0] = Input.GetAxis("Horizontal");
         continousActionsOut[1] = Input.GetAxis("Vertical");
+
         if (Input.GetKey(KeyCode.Space))
         {
             continousActionsOut[2] = 1;
