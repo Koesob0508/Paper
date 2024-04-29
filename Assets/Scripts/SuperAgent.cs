@@ -49,6 +49,8 @@ public class SuperAgent : Agent
 
     public float obstacleCount;
 
+    public float episodeTime;
+
     private void Start()
     {
         carRigidbody = this.GetComponent<Rigidbody>();
@@ -78,8 +80,24 @@ public class SuperAgent : Agent
         carRigidbody.velocity = Vector3.zero;
     }
 
+    void Update()
+    {
+        episodeTime += Time.deltaTime;
+
+        if (episodeTime > 3f)
+        {
+            episodeTime = 0f;
+            EndEpisode();
+            transform.parent.gameObject.SetActive(false);
+            Managers.Env.StartEpisode();
+        }
+    }
+
     public override void CollectObservations(VectorSensor sensor)
     {
+        sensor.AddObservation(new Vector2(carRigidbody.velocity.x, carRigidbody.velocity.z));
+        sensor.AddObservation(carController.isBraking);
+        
         //CastRay();
 
         //Vector2 goalXZ = new Vector2(goal.transform.position.x, goal.transform.position.z);
@@ -116,17 +134,17 @@ public class SuperAgent : Agent
 
     public override void OnActionReceived(ActionBuffers actions)
     {
-        //carController.horizontalInput = actions.ContinuousActions[0];
-        //carController.verticalInput = actions.ContinuousActions[1];
-        //if (actions.ContinuousActions[2] > 0)
-        //{
-        //    carController.currentBrake = actions.ContinuousActions[2];
-        //    carController.isBraking = true;
-        //}
-        //else
-        //{
-        //    carController.isBraking = false;
-        //}
+        carController.horizontalInput = actions.ContinuousActions[0];
+        carController.verticalInput = actions.ContinuousActions[1];
+        if (actions.ContinuousActions[2] > 0)
+        {
+            carController.currentBrake = actions.ContinuousActions[2];
+            carController.isBraking = true;
+        }
+        else
+        {
+            carController.isBraking = false;
+        }
     }
 
     public override void Heuristic(in ActionBuffers actionsOut)
@@ -147,19 +165,19 @@ public class SuperAgent : Agent
 
     private void OnTriggerStay(Collider other)
     {
-        if (other.gameObject.CompareTag("Obstacle"))
-        {
-            Debug.Log("±³Ελ »η°ν");
-            SetReward(-1);
-            EndEpisode();
-        }
+        //if (other.gameObject.CompareTag("Obstacle"))
+        //{
+        //    Debug.Log("±³Ελ »η°ν");
+        //    SetReward(-1);
+        //    EndEpisode();
+        //}
 
-        if (other.gameObject.CompareTag("Goal"))
-        {
-            Debug.Log("°ρΐΞ");
-            SetReward(1);
-            EndEpisode();
-        }
+        //if (other.gameObject.CompareTag("Goal"))
+        //{
+        //    Debug.Log("°ρΐΞ");
+        //    SetReward(1);
+        //    EndEpisode();
+        //}
     }
 
     /// <summary>

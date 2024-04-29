@@ -57,7 +57,8 @@ public class EnvManager : MonoBehaviour
 
     public int[,] graph = new int[25, 25];
     public int[,] next = new int[25, 25];
-    public List<GameObject> Guides = new List<GameObject>();
+    public List<int> Paths = new List<int>();
+    public List<GameObject> PathsObject;
 
     private string ObjectToJson(object obj)
     {
@@ -81,11 +82,17 @@ public class EnvManager : MonoBehaviour
         fileStream.Close();
     }
 
-    private void InitializeLevel()
+    public void LoadData()
+    {
+        Pool = LoadJsonFile<EnvPool>(Application.dataPath, "PoolData");
+    }
+
+    public void InitializeLevel()
     {
         if (Agent == null)
         {
             Obstacles = new List<GameObject>();
+            PathsObject = new List<GameObject>();
 
             // 일단 Floor를 깝니다.
             Floor = Instantiate(preFloor, Vector3.zero, Quaternion.identity, transform);
@@ -113,27 +120,33 @@ public class EnvManager : MonoBehaviour
             West.transform.position = new Vector4(-3, 0.5f, 0);
             #endregion Wall
 
-            #region Obstacles
+            #region Obstacles & Paths
             for (int idxY = 2; idxY > -3; idxY--)
             {
                 for (int idxX = -2; idxX < 3; idxX++)
                 {
                     GameObject _ = Instantiate(preObstacle, new Vector3(idxX, 0.5f, idxY), Quaternion.identity, transform);
                     Obstacles.Add(_);
+
+                    GameObject pathObject = Instantiate(preGuide, new Vector3(idxX, 0.5f, idxY), Quaternion.identity, transform);
+                    PathsObject.Add(pathObject);
+                    pathObject.SetActive(false);
+
+                    Debug.Log("Obstacle");
                 }
             }
-            #endregion Obstacles
+            #endregion Obstacles & Paths
 
             #region Prob
             Agent = Instantiate(preAgent, Vector3.zero, Quaternion.identity, transform);
             Agent.SetActive(false);
-            Target = Instantiate(preTarget, Vector3.zero, Quaternion.identity, transform);
-            Target.SetActive(false);
+            //Target = Instantiate(preTarget, Vector3.zero, Quaternion.identity, transform);
+            //Target.SetActive(false);
             #endregion Prbo
         }
     }
 
-    private void GenerateLevel(EnvData env)
+    public void GenerateLevel(EnvData env)
     {
         if (Agent == null)
         {
@@ -164,6 +177,11 @@ public class EnvManager : MonoBehaviour
 
                 ObstacleIndex++;
             }
+        }
+
+        foreach(GameObject obj in PathsObject)
+        {
+            obj.SetActive(false);
         }
 
         // spaceList.Count 내에서 랜덤하게 하나 뽑기
@@ -201,14 +219,31 @@ public class EnvManager : MonoBehaviour
         // Agent 배치
         Agent.transform.position = startPoint;
         Agent.transform.rotation = Quaternion.Euler(startDirection);
-        Agent.SetActive(true);
+        //Agent.SetActive(true);
 
         // Target 배치
-        Target.transform.position = endPoint;
-        Target.SetActive(true);
+        //Target.transform.position = endPoint;
+        //Target.SetActive(true);
     }
 
-    private void GenerateGraph()
+    public void StartEpisode()
+    {
+        GenerateRandomLevel();
+        GenerateGraph();
+        CalculatePath(graph);
+        FindPath(StartIndex, EndIndex);
+        ShowPath();
+        Agent.SetActive(true);
+    }
+
+    public void GenerateRandomLevel()
+    {
+        int randomIndex = Random.Range(0, Pool.Env.Count);
+
+        GenerateLevel(Pool.Env[randomIndex]);
+    }
+
+    public void GenerateGraph()
     {
         // 기본적으로 모두 연결되어 있지 않음
         for (int i = 0; i < 25; i++)
@@ -297,32 +332,23 @@ public class EnvManager : MonoBehaviour
         }
     }
 
-    public void FindPath()
+    public void FindPath(int startIndex, int endIndex)
     {
-        for (int i = 0; i < 25; i++)
-        {
-            string pathResult = "";
-            for (int j = 0; j < 25; j++)
-            {
-                pathResult += $"[{i} {j} {graph[i, j]}] ";
-            }
-            Debug.Log(pathResult);
-        }
+        Paths.Clear();
 
-        string result = "";
-        for (int i = 0; i < 25; i++)
+        int inter = next[startIndex, endIndex];
+        while(inter != -1)
         {
-            for (int j = 0; j < 25; j++)
-            {
-                result = $"정점 {i}에서 정점 {j}까지의 최단 경로: {i} ";
-                int inter = next[i, j];
-                while (inter != -1)
-                {
-                    result += $"-> {inter}";
-                    inter = next[inter, j];
-                }
-                Debug.Log(result);
-            }
+            Paths.Add(inter);
+            inter = next[inter, endIndex];
+        }
+    }
+
+    public void ShowPath()
+    {
+        foreach(int index in Paths)
+        {
+            PathsObject[index].SetActive(true);
         }
     }
 
@@ -336,7 +362,7 @@ public class EnvManager : MonoBehaviour
 
     public void OnClickLoad()
     {
-        Pool = LoadJsonFile<EnvPool>(Application.dataPath, "PoolData");
+        LoadData();
     }
 
     public void OnClickInitialize()
@@ -347,11 +373,6 @@ public class EnvManager : MonoBehaviour
     public void OnClickGenerate()
     {
         GenerateLevel(Pool.Env[EnvIndex]);
-    }
-
-    public void OnClickRemove()
-    {
-
     }
 
     public void OnClickPrev()
@@ -377,7 +398,12 @@ public class EnvManager : MonoBehaviour
     public void OnClickFindPath()
     {
         CalculatePath(graph);
-        FindPath();
+        FindPath(StartIndex, EndIndex);
+    }
+
+    public void OnClickShowPath()
+    {
+        ShowPath();
     }
 
     #endregion
