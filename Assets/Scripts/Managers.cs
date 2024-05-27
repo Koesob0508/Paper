@@ -7,9 +7,12 @@ public class Managers : MonoBehaviour
     static Managers s_instance;
     public static Managers Instance { get { Init(); return s_instance; } }
 
-    public EnvManager _env;
+    private DataManager _data = new DataManager();
 
-    public static EnvManager Env { get { return Instance._env; } }
+    public static DataManager Data { get { return Instance._data; } }
+
+    public List<EnvManager> Envs = new List<EnvManager>();
+
     private void Start()
     {
         Init();
@@ -30,10 +33,13 @@ public class Managers : MonoBehaviour
             DontDestroyOnLoad(go);
             s_instance = go.GetComponent<Managers>();
 
-            // s_instance._env.Init();
-            Env.LoadData();
-            Env.InitializeLevel();
-            Env.StartEpisode();
+            Data.LoadData();
+
+            foreach(EnvManager Env in Instance.Envs)
+            {
+                Env.InitializeLevel();
+                Env.StartEpisode();
+            }
         }
     }
 

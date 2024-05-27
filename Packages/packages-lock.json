@@ -77,7 +77,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.ml-agents": {
-      "version": "file:C:/Projects/2024.01.01.-/ml-agents/com.unity.ml-agents",
+      "version": "file:D:/2024.01.01.-/RL_Project/ml-agents/com.unity.ml-agents",
       "depth": 0,
       "source": "local",
       "dependencies": {
@@ -88,7 +88,7 @@
       }
     },
     "com.unity.ml-agents.extensions": {
-      "version": "file:C:/Projects/2024.01.01.-/ml-agents/com.unity.ml-agents.extensions",
+      "version": "file:D:/2024.01.01.-/RL_Project/ml-agents/com.unity.ml-agents.extensions",
       "depth": 0,
       "source": "local",
       "dependencies": {

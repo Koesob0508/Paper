@@ -10,6 +10,8 @@ public class SuperAgent : Agent
     public Rigidbody carRigidbody;
     public GameObject goal;
     public CarController carController;
+    public float Timer;
+    public bool isStart = false;
 
     // 8 방향을 커스텀하기 위한 지점
     public GameObject stoneFront;
@@ -40,16 +42,10 @@ public class SuperAgent : Agent
     public Vector2 toTarget;
     public Vector2 fromObstacle;
 
-    // Obstacle 리스트
-    public List<Vector3> sortedObjects;
     // RayCast를 위한 변수들
     private RaycastHit raycastHit;
 
-    public float goalRadius;
-
-    public float obstacleCount;
-
-    public float episodeTime;
+    public EnvManager Env;
 
     private void Start()
     {
@@ -69,71 +65,78 @@ public class SuperAgent : Agent
             stoneLeft,
             stoneFL
         };
-
-        sortedObjects = new List<Vector3>();
     }
 
     public override void OnEpisodeBegin()
     {
-        this.gameObject.transform.localPosition = Vector3.zero;
-        this.gameObject.transform.rotation = Quaternion.Euler(0f, 0f, 0f);
+        isStart = false;
+        Timer = 0f;
         carRigidbody.velocity = Vector3.zero;
-    }
 
-    void Update()
-    {
-        episodeTime += Time.deltaTime;
-
-        if (episodeTime > 3f)
+        for (int i = 0; i < 2; i++)
         {
-            episodeTime = 0f;
-            EndEpisode();
-            transform.parent.gameObject.SetActive(false);
-            Managers.Env.StartEpisode();
+            if (Env.CurrentPaths.Count < 2)
+            {
+                Env.TargetIndices[0] = Env.CurrentPaths[0];
+                Env.TargetIndices[1] = -1;
+                break;
+            }
+            else
+            {
+                Env.TargetIndices[i] = Env.CurrentPaths[i];
+            }
         }
     }
 
     public override void CollectObservations(VectorSensor sensor)
     {
+        sensor.AddObservation(transform.rotation.eulerAngles.y / 360);
         sensor.AddObservation(new Vector2(carRigidbody.velocity.x, carRigidbody.velocity.z));
+        sensor.AddObservation(carController.steerAngle / carController.maxSteeringAngle);
         sensor.AddObservation(carController.isBraking);
-        
-        //CastRay();
 
-        //Vector2 goalXZ = new Vector2(goal.transform.position.x, goal.transform.position.z);
-        //Vector2 positionXZ = new Vector2(this.transform.position.x, this.transform.position.z);
-        //toTarget = goalXZ - positionXZ;
-        //sensor.AddObservation(toTarget.normalized); // 2
 
-        //float relativeDistance = toTarget.magnitude / goalRadius;
-        //sensor.AddObservation(relativeDistance); // 1
+        if (Env.TargetIndices[0] != -1)
+        {
+            Env.TargetPosition = Env.PathObjects[Env.TargetIndices[0]].transform.position;
+            Env.FirstVector = new Vector2(Env.TargetPosition.x - this.transform.position.x, Env.TargetPosition.z - this.transform.position.z).normalized;
 
-        //sensor.AddObservation(carRigidbody.velocity.x); // 1
-        //sensor.AddObservation(carRigidbody.velocity.z); // 1
+            Env.Distance = new Vector2(Env.TargetPosition.x - this.transform.position.x, Env.TargetPosition.z - this.transform.position.z).magnitude;
+        }
+        else
+        {
+            Env.TargetPosition = transform.position;
+            Env.FirstVector = Vector2.zero.normalized;
+        }
 
-        //Vector2 rotationNomal = new Vector2(this.transform.rotation.normalized.y, this.transform.rotation.normalized.w);
-        //sensor.AddObservation(rotationNomal); // 2
+        sensor.AddObservation(new Vector2(transform.InverseTransformPoint(Env.TargetPosition).x, transform.InverseTransformPoint(Env.TargetPosition).z));
+        sensor.AddObservation(Env.Distance);
+        sensor.AddObservation(Env.FirstVector);
 
-        //fromObstacle = Vector2.zero;
+        if (Env.TargetIndices[1] != -1)
+        {
+            GameObject _ = Env.PathObjects[Env.TargetIndices[1]];
+            Env.SecondVector = new Vector2(_.transform.position.x - this.transform.position.x, _.transform.position.z - this.transform.position.z).normalized;
+        }
+        else
+        {
+            Env.SecondVector = Vector2.zero.normalized;
+        }
 
-        //obstacleCount = sortedObjects.Count;
+        sensor.AddObservation(Env.SecondVector);
 
-        //foreach(Vector3 sorted in sortedObjects)
-        //{
-        //    fromObstacle.x += rayDistance - (positionXZ.x - sorted.x);
-        //    fromObstacle.y += rayDistance - (positionXZ.y - sorted.z);
-        //}
+        Env.Rays = CastRay();
 
-        //if(sortedObjects.Count > 0)
-        //{
-        //    fromObstacle /= sortedObjects.Count;
-        //}
-
-        //sensor.AddObservation(fromObstacle); // 2
+        foreach(var ray in Env.Rays)
+        {
+            sensor.AddObservation(ray / rayDistance);
+        }
     }
 
     public override void OnActionReceived(ActionBuffers actions)
     {
+        Timer += Time.deltaTime;
+
         carController.horizontalInput = actions.ContinuousActions[0];
         carController.verticalInput = actions.ContinuousActions[1];
         if (actions.ContinuousActions[2] > 0)
@@ -163,36 +166,110 @@ public class SuperAgent : Agent
         }
     }
 
-    private void OnTriggerStay(Collider other)
+    private void OnTriggerEnter(Collider other)
     {
-        //if (other.gameObject.CompareTag("Obstacle"))
-        //{
-        //    Debug.Log("교통 사고");
-        //    SetReward(-1);
-        //    EndEpisode();
-        //}
+        if (other.gameObject.CompareTag("Obstacle"))
+        {
+            AddReward(-1);
+            gameObject.SetActive(false);
+            Env.StartEpisode();
+            EndEpisode();
+        }
 
-        //if (other.gameObject.CompareTag("Goal"))
-        //{
-        //    Debug.Log("골인");
-        //    SetReward(1);
-        //    EndEpisode();
-        //}
+        if (other.gameObject.CompareTag("Path"))
+        {
+            if (other.gameObject == Env.PathObjects[Env.CurrentPaths[0]])
+            {
+                if (isStart == false)
+                {
+                    isStart = true;
+                    AddReward(1);
+                }
+                else
+                {
+                    if (Timer < 5f)
+                    {
+                        AddReward(5);
+                    }
+                    else
+                    {
+                        AddReward(1);
+                    }
+                }
+                Timer = 0f;
+
+                Env.CurrentPaths.RemoveAt(0);
+                other.gameObject.SetActive(false);
+
+                if (Env.CurrentPaths.Count == 0)
+                {
+                    gameObject.SetActive(false);
+                    Env.StartEpisode();
+                    EndEpisode();
+                }
+                else if (Env.CurrentPaths.Count == 1)
+                {
+                    Env.TargetIndices[0] = Env.CurrentPaths[0];
+                    Env.TargetIndices[1] = -1;
+                }
+                else
+                {
+                    Env.TargetIndices[0] = Env.CurrentPaths[0];
+                    Env.TargetIndices[1] = Env.CurrentPaths[1];
+                }
+            }
+        }
     }
 
     /// <summary>
     /// ray를 시각화
     /// </summary>
-    private void DisplayRay()
+    private void DisplayRay(List<bool> hit, List<float> result)
     {
-        Debug.DrawRay(rayFront.origin, rayFront.direction * rayDistance, Color.red);
-        Debug.DrawRay(rayFR.origin, rayFR.direction * rayDistance, Color.red);
-        Debug.DrawRay(rayRight.origin, rayRight.direction * rayDistance, Color.red);
-        Debug.DrawRay(rayBR.origin, rayBR.direction * rayDistance, Color.red);
-        Debug.DrawRay(rayBack.origin, rayBack.direction * rayDistance, Color.red);
-        Debug.DrawRay(rayBL.origin, rayBL.direction * rayDistance, Color.red);
-        Debug.DrawRay(rayLeft.origin, rayLeft.direction * rayDistance, Color.red);
-        Debug.DrawRay(rayFL.origin, rayFL.direction * rayDistance, Color.red);
+        if (hit.Count != 8) { Debug.LogError("Hit 숫자가 잘못됨"); return; }
+
+        Ray[] rays = { rayFront, rayFR, rayRight, rayBR, rayBack, rayBL, rayLeft, rayFL };
+        Color color;
+
+        for (int index = 0; index < 8; index++)
+        {
+            color = hit[index] ? Color.red : Color.green;
+            Debug.DrawRay(rays[index].origin, rays[index].direction * result[index], color);
+        }
+    }
+
+    /// <summary>
+    /// Ray Cast 후 거리 관측, 아무것도 관측되지 않은 경우, 10으로
+    /// </summary>
+    private List<float> CastRay()
+    {
+        List<float> result = new List<float>();
+        List<bool> hit = new List<bool>();
+        Ray[] rays = new Ray[] { rayFront, rayFR, rayRight, rayBR, rayBack, rayBL, rayLeft, rayFL };
+
+        UpdateRay();
+
+        rayDistance = 10;
+
+        int layer = LayerMask.GetMask("Obstacle");
+
+        foreach (Ray ray in rays)
+        {
+            if (Physics.Raycast(ray, out raycastHit, rayDistance, layer))
+            {
+                result.Add((raycastHit.point - ray.origin).magnitude);
+                hit.Add(true);
+            }
+            else
+            {
+                hit.Add(false);
+                result.Add(10f);
+            }
+        }
+
+        DisplayRay(hit, result);
+
+        return result;
     }
 
     private void UpdateRay()
@@ -217,54 +294,8 @@ public class SuperAgent : Agent
         _ray = new Ray(_stone.transform.position, _stone.transform.forward);
     }
 
-    /// <summary>
-    /// Ray Cast 후 거리 관측, 아무것도 관측되지 않은 경우, 편의상 0으로
-    /// </summary>
-    private void CastRay()
+    private void OnDestroy()
     {
-        UpdateRay();
-        sortedObjects.Clear();
-
-        if (Physics.Raycast(rayFront, out raycastHit, rayDistance))
-        {
-            sortedObjects.Add(raycastHit.point);
-        }
-
-        if (Physics.Raycast(rayFR, out raycastHit, rayDistance))
-        {
-            sortedObjects.Add(raycastHit.point);
-        }
-
-        if (Physics.Raycast(rayRight, out raycastHit, rayDistance))
-        {
-            sortedObjects.Add(raycastHit.point);
-        }
-
-        if (Physics.Raycast(rayBR, out raycastHit, rayDistance))
-        {
-            sortedObjects.Add(raycastHit.point);
-        }
-
-        if (Physics.Raycast(rayBack, out raycastHit, rayDistance))
-        {
-            sortedObjects.Add(raycastHit.point);
-        }
-
-        if (Physics.Raycast(rayBL, out raycastHit, rayDistance))
-        {
-            sortedObjects.Add(raycastHit.point);
-        }
-
-        if (Physics.Raycast(rayLeft, out raycastHit, rayDistance))
-        {
-            sortedObjects.Add(raycastHit.point);
-        }
-
-        if (Physics.Raycast(rayFL, out raycastHit, rayDistance))
-        {
-            sortedObjects.Add(raycastHit.point);
-        }
-
-        DisplayRay();
+        Env = null;
     }
 }

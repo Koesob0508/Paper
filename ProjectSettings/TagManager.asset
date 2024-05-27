@@ -6,11 +6,12 @@ TagManager:
   tags:
   - Obstacle
   - Goal
+  - Path
   layers:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - 
+  - Obstacle
   - Water
   - UI
   - 

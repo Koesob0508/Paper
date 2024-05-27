@@ -51,73 +51,52 @@ public class EnvManager : MonoBehaviour
     public GameObject Target;
     #endregion
 
-    public EnvPool Pool;
+    //public EnvPool Pool;
 
     public int EnvIndex = 0;
 
     public int[,] graph = new int[25, 25];
     public int[,] next = new int[25, 25];
-    public List<int> Paths = new List<int>();
-    public List<GameObject> PathsObject;
-
-    private string ObjectToJson(object obj)
-    {
-        return JsonConvert.SerializeObject(obj);
-    }
-
-    private T LoadJsonFile<T>(string loadPath, string fileName)
-    {
-        FileStream fileStream = new FileStream(string.Format("{0}/{1}.json", loadPath, fileName), FileMode.Open);
-        byte[] data = new byte[fileStream.Length];
-        fileStream.Read(data, 0, data.Length);
-        fileStream.Close(); string jsonData = Encoding.UTF8.GetString(data);
-        return JsonConvert.DeserializeObject<T>(jsonData);
-    }
-
-    private void CreateJsonFile(string createPath, string fileName, string jsonData)
-    {
-        FileStream fileStream = new FileStream(string.Format("{0}/{1}.json", createPath, fileName), FileMode.Create);
-        byte[] data = Encoding.UTF8.GetBytes(jsonData);
-        fileStream.Write(data, 0, data.Length);
-        fileStream.Close();
-    }
-
-    public void LoadData()
-    {
-        Pool = LoadJsonFile<EnvPool>(Application.dataPath, "PoolData");
-    }
+    public List<int> CurrentPaths = new List<int>();
+    public List<GameObject> PathObjects;
+    public List<int> TargetIndices = new List<int>() { -1, -1 };
+    public Vector2 FirstVector;
+    public Vector2 SecondVector;
+    public List<float> Rays;
+    public float Distance;
+    public Vector3 TargetPosition;
 
     public void InitializeLevel()
     {
         if (Agent == null)
         {
             Obstacles = new List<GameObject>();
-            PathsObject = new List<GameObject>();
+            PathObjects = new List<GameObject>();
 
             // 일단 Floor를 깝니다.
-            Floor = Instantiate(preFloor, Vector3.zero, Quaternion.identity, transform);
+            Floor = Instantiate(preFloor, Vector3.zero + transform.position, Quaternion.identity, transform);
             Floor.transform.localScale = new Vector3(5, 1, 5);
 
             #region Wall
             // North
             North = Instantiate(preObstacle, Vector3.zero, Quaternion.identity, transform);
             North.transform.localScale = new Vector3(6, 1, 1);
-            North.transform.position = new Vector4(0, 0.5f, 3);
+            North.transform.position = new Vector3(0, 0.5f, 3) + transform.position;
 
             // East
             East = Instantiate(preObstacle, Vector3.zero, Quaternion.identity, transform);
             East.transform.localScale = new Vector3(1, 1, 6);
-            East.transform.position = new Vector4(3, 0.5f, 0);
+            East.transform.position = new Vector3(3, 0.5f, 0) + transform.position;
 
             // South
             South = Instantiate(preObstacle, Vector3.zero, Quaternion.identity, transform);
             South.transform.localScale = new Vector3(6, 1, 1);
-            South.transform.position = new Vector4(0, 0.5f, -3);
+            South.transform.position = new Vector3(0, 0.5f, -3) + transform.position;
 
             // West
             West = Instantiate(preObstacle, Vector3.zero, Quaternion.identity, transform);
             West.transform.localScale = new Vector3(1, 1, 6);
-            West.transform.position = new Vector4(-3, 0.5f, 0);
+            West.transform.position = new Vector3(-3, 0.5f, 0) + transform.position;
             #endregion Wall
 
             #region Obstacles & Paths
@@ -125,20 +104,19 @@ public class EnvManager : MonoBehaviour
             {
                 for (int idxX = -2; idxX < 3; idxX++)
                 {
-                    GameObject _ = Instantiate(preObstacle, new Vector3(idxX, 0.5f, idxY), Quaternion.identity, transform);
+                    GameObject _ = Instantiate(preObstacle, new Vector3(idxX, 0.5f, idxY) + transform.position, Quaternion.identity, transform);
                     Obstacles.Add(_);
 
-                    GameObject pathObject = Instantiate(preGuide, new Vector3(idxX, 0.5f, idxY), Quaternion.identity, transform);
-                    PathsObject.Add(pathObject);
+                    GameObject pathObject = Instantiate(preGuide, new Vector3(idxX, 0.15f, idxY) + transform.position, Quaternion.identity, transform);
+                    PathObjects.Add(pathObject);
                     pathObject.SetActive(false);
-
-                    Debug.Log("Obstacle");
                 }
             }
             #endregion Obstacles & Paths
 
             #region Prob
-            Agent = Instantiate(preAgent, Vector3.zero, Quaternion.identity, transform);
+            Agent = Instantiate(preAgent, Vector3.zero + transform.position, Quaternion.identity, transform);
+            Agent.GetComponent<SuperAgent>().Env = this;
             Agent.SetActive(false);
             //Target = Instantiate(preTarget, Vector3.zero, Quaternion.identity, transform);
             //Target.SetActive(false);
@@ -179,7 +157,7 @@ public class EnvManager : MonoBehaviour
             }
         }
 
-        foreach(GameObject obj in PathsObject)
+        foreach(GameObject obj in PathObjects)
         {
             obj.SetActive(false);
         }
@@ -219,7 +197,6 @@ public class EnvManager : MonoBehaviour
         // Agent 배치
         Agent.transform.position = startPoint;
         Agent.transform.rotation = Quaternion.Euler(startDirection);
-        //Agent.SetActive(true);
 
         // Target 배치
         //Target.transform.position = endPoint;
@@ -238,9 +215,9 @@ public class EnvManager : MonoBehaviour
 
     public void GenerateRandomLevel()
     {
-        int randomIndex = Random.Range(0, Pool.Env.Count);
+        int randomIndex = Random.Range(0, Managers.Data.Pool.Env.Count);
 
-        GenerateLevel(Pool.Env[randomIndex]);
+        GenerateLevel(Managers.Data.Pool.Env[randomIndex]);
     }
 
     public void GenerateGraph()
@@ -334,21 +311,22 @@ public class EnvManager : MonoBehaviour
 
     public void FindPath(int startIndex, int endIndex)
     {
-        Paths.Clear();
+        CurrentPaths.Clear();
 
         int inter = next[startIndex, endIndex];
         while(inter != -1)
         {
-            Paths.Add(inter);
+            CurrentPaths.Add(inter);
             inter = next[inter, endIndex];
         }
     }
 
     public void ShowPath()
     {
-        foreach(int index in Paths)
+        foreach(int index in CurrentPaths)
         {
-            PathsObject[index].SetActive(true);
+            PathObjects[index].SetActive(true);
+            //CurrentPathIndex.Add(index);
         }
     }
 
@@ -356,13 +334,13 @@ public class EnvManager : MonoBehaviour
 
     public void OnClickSave()
     {
-        string jsonData = ObjectToJson(Pool);
-        CreateJsonFile(Application.dataPath, "PoolData", jsonData);
+        //string jsonData = ObjectToJson(Managers.Data.Pool);
+        //CreateJsonFile(Application.dataPath, "PoolData", jsonData);
     }
 
     public void OnClickLoad()
     {
-        LoadData();
+        Managers.Data.LoadData();
     }
 
     public void OnClickInitialize()
@@ -372,7 +350,7 @@ public class EnvManager : MonoBehaviour
 
     public void OnClickGenerate()
     {
-        GenerateLevel(Pool.Env[EnvIndex]);
+        GenerateLevel(Managers.Data.Pool.Env[EnvIndex]);
     }
 
     public void OnClickPrev()
@@ -381,7 +359,7 @@ public class EnvManager : MonoBehaviour
 
         if (EnvIndex < 0)
         {
-            EnvIndex = Pool.Env.Count - 1;
+            EnvIndex = Managers.Data.Pool.Env.Count - 1;
         }
     }
 
@@ -389,7 +367,7 @@ public class EnvManager : MonoBehaviour
     {
         EnvIndex++;
 
-        if (EnvIndex == Pool.Env.Count)
+        if (EnvIndex == Managers.Data.Pool.Env.Count)
         {
             EnvIndex = 0;
         }
