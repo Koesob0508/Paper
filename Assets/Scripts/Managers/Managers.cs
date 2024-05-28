@@ -8,8 +8,14 @@ public class Managers : MonoBehaviour
     public static Managers Instance { get { Init(); return s_instance; } }
 
     private DataManager _data = new DataManager();
+    private ResourceManager _resource = new ResourceManager();
+    private SceneManagerEx _scene = new SceneManagerEx();
+    private PoolManager _pool = new PoolManager();
 
     public static DataManager Data { get { return Instance._data; } }
+    public static ResourceManager Resource { get { return Instance._resource; } }
+    public static SceneManagerEx Scene { get { return Instance._scene; } }
+    public static PoolManager Pool { get { return Instance._pool; } }
 
     public List<EnvManager> Envs = new List<EnvManager>();
 
@@ -33,13 +39,14 @@ public class Managers : MonoBehaviour
             DontDestroyOnLoad(go);
             s_instance = go.GetComponent<Managers>();
 
-            Data.LoadData();
+            //Data.LoadData();
+            s_instance._data.Init();
 
-            foreach(EnvManager Env in Instance.Envs)
-            {
-                Env.InitializeLevel();
-                Env.StartEpisode();
-            }
+            //foreach(EnvManager Env in Instance.Envs)
+            //{
+            //    Env.InitializeLevel();
+            //    Env.StartEpisode();
+            //}
         }
     }
 
