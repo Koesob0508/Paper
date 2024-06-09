@@ -1,6 +1,7 @@
 {
   "Envs": [
     {
+      "GUID": 1,
       "Name": "Straight",
       "Directions": [],
       "Env": [
@@ -12,6 +13,7 @@
       ]
     },
     {
+      "GUID": 2,
       "Name": "2by2",
       "Directions": [],
       "Env": [
@@ -23,6 +25,7 @@
       ]
     },
     {
+      "GUID": 3,
       "Name": "3by3",
       "Directions": [],
       "Env": [
@@ -34,6 +37,7 @@
       ]
     },
     {
+      "GUID": 4,
       "Name": "5by5",
       "Directions": [],
       "Env": [

@@ -21,7 +21,7 @@ public class EnvLoader : ILoader<int, EnvData>
 
         foreach(EnvData data in Envs)
         {
-            EnvDictionary.Add(data.GetHashCode(), data);
+            EnvDictionary.Add(data.GUID, data);
         }
 
         return EnvDictionary;
@@ -32,11 +32,11 @@ public class DataManager
 {
     public EnvPool Pool;
 
-    public Dictionary<int, EnvData> EnvDictionary { get; private set; } = new Dictionary<int, EnvData>();
+    public Dictionary<int, EnvData> TrainingEnvs { get; private set; } = new Dictionary<int, EnvData>();
 
     public void Init()
     {
-        EnvDictionary = LoadJson<EnvLoader, int, EnvData>("EnvData").MakeDictionary();
+        TrainingEnvs = LoadJson<EnvLoader, int, EnvData>("EnvData").MakeDictionary();
     }
 
     private Loader LoadJson<Loader, Key, Value>(string path) where Loader : ILoader<Key, Value>
@@ -52,14 +52,6 @@ public class DataManager
         fileStream.Read(data, 0, data.Length);
         fileStream.Close(); string jsonData = Encoding.UTF8.GetString(data);
         return JsonConvert.DeserializeObject<T>(jsonData);
-    }
-
-    private void CreateJsonFile(string createPath, string fileName, string jsonData)
-    {
-        FileStream fileStream = new FileStream(string.Format("{0}/{1}.json", createPath, fileName), FileMode.Create);
-        byte[] data = Encoding.UTF8.GetBytes(jsonData);
-        fileStream.Write(data, 0, data.Length);
-        fileStream.Close();
     }
 
     public void LoadData()

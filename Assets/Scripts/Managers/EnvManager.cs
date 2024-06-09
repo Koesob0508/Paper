@@ -7,13 +7,7 @@ using UnityEngine;
 using Newtonsoft.Json;
 using Random = UnityEngine.Random;
 
-[Serializable]
-public struct EnvData
-{
-    public string Name;
-    public List<int> Directions;
-    public List<List<int>> Env;
-}
+
 
 [Serializable]
 public struct EnvPool
