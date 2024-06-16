@@ -11,26 +11,9 @@ public interface ILoader<Key, Value>
     Dictionary<Key, Value> MakeDictionary();
 }
 
-public class EnvLoader : ILoader<int, EnvData>
-{
-    public List<EnvData> Envs = new List<EnvData>();
-
-    public Dictionary<int, EnvData> MakeDictionary()
-    {
-        Dictionary<int, EnvData> EnvDictionary = new Dictionary<int, EnvData>();
-
-        foreach(EnvData data in Envs)
-        {
-            EnvDictionary.Add(data.GUID, data);
-        }
-
-        return EnvDictionary;
-    }
-}
-
 public class DataManager
 {
-    public EnvPool Pool;
+    public List<EnvData> Pool;
 
     public Dictionary<int, EnvData> TrainingEnvs { get; private set; } = new Dictionary<int, EnvData>();
 
@@ -52,10 +35,5 @@ public class DataManager
         fileStream.Read(data, 0, data.Length);
         fileStream.Close(); string jsonData = Encoding.UTF8.GetString(data);
         return JsonConvert.DeserializeObject<T>(jsonData);
-    }
-
-    public void LoadData()
-    {
-        Pool = LoadJsonFile<EnvPool>(Application.dataPath, "PoolData");
     }
 }

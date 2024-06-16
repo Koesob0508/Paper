@@ -114,7 +114,7 @@ public class EnvManager : MonoBehaviour
             Agent.SetActive(false);
             //Target = Instantiate(preTarget, Vector3.zero, Quaternion.identity, transform);
             //Target.SetActive(false);
-            #endregion Prbo
+            #endregion Prob
         }
     }
 
@@ -209,9 +209,9 @@ public class EnvManager : MonoBehaviour
 
     public void GenerateRandomLevel()
     {
-        int randomIndex = Random.Range(0, Managers.Data.Pool.Env.Count);
+        //int randomIndex = Random.Range(0, Managers.Data.Pool.Env.Count);
 
-        GenerateLevel(Managers.Data.Pool.Env[randomIndex]);
+        //GenerateLevel(Managers.Data.Pool.Env[randomIndex]);
     }
 
     public void GenerateGraph()
@@ -334,7 +334,7 @@ public class EnvManager : MonoBehaviour
 
     public void OnClickLoad()
     {
-        Managers.Data.LoadData();
+        //Managers.Data.LoadData();
     }
 
     public void OnClickInitialize()
@@ -344,27 +344,27 @@ public class EnvManager : MonoBehaviour
 
     public void OnClickGenerate()
     {
-        GenerateLevel(Managers.Data.Pool.Env[EnvIndex]);
+        //GenerateLevel(Managers.Data.Pool.Env[EnvIndex]);
     }
 
     public void OnClickPrev()
     {
-        EnvIndex--;
+        //EnvIndex--;
 
-        if (EnvIndex < 0)
-        {
-            EnvIndex = Managers.Data.Pool.Env.Count - 1;
-        }
+        //if (EnvIndex < 0)
+        //{
+        //    EnvIndex = Managers.Data.Pool.Env.Count - 1;
+        //}
     }
 
     public void OnClickNext()
     {
-        EnvIndex++;
+        //EnvIndex++;
 
-        if (EnvIndex == Managers.Data.Pool.Env.Count)
-        {
-            EnvIndex = 0;
-        }
+        //if (EnvIndex == Managers.Data.Pool.Env.Count)
+        //{
+        //    EnvIndex = 0;
+        //}
     }
 
     public void OnClickFindPath()
