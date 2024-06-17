@@ -10,7 +10,9 @@ public class MapManager
     public GameObject Root { get { return root; } }
     private EnvData currentEnv;
 
-    private GameObject agent = null;
+    private GameObject agent;
+    public GameObject Agent { get { return agent; } }
+    private Navigation navigation;
     private GameObject end;
 
     private GameObject floor;
@@ -37,6 +39,8 @@ public class MapManager
 
     private int[,] graph = new int[25, 25];
     private int[,] next = new int[25, 25];
+
+    private bool isTrainingMode = false;
 
     public GameObject Target
     {
@@ -76,7 +80,7 @@ public class MapManager
         endList = new List<int>();
 
         InitializeLevel();
-        StartEpisode();
+        StartEpisode(isTrainingMode);
     }
 
     public void InitializeLevel()
@@ -142,22 +146,36 @@ public class MapManager
         agent = Managers.Resource.Instantiate("Prefabs/Agent", root.transform);
         agent.GetComponent<FirstAgent>().mapManager = this;
         agent.SetActive(false);
+
+        navigation = Managers.Resource.Instantiate("Prefabs/Navigation", root.transform).GetComponent<Navigation>();
+        navigation.mapManager = this;
+        navigation.gameObject.SetActive(false);
     }
 
-    public void StartEpisode(bool isTrainingMode = true)
+    public void StartEpisode(bool _isTrainingMode = true)
     {
-        if (isTrainingMode)
+        if (_isTrainingMode)
         {
             var values = Managers.Data.TrainingEnvs.Values.ToList();
             int randomIndex = Random.Range(0, values.Count);
 
             GenerateLevel(values[randomIndex]);
         }
+        else
+        {
+            var values = Managers.Data.TestEnvs.Values.ToList();
+            int randomIndex = Random.Range(0, values.Count);
+
+            GenerateLevel(values[1]);
+        }
+
+        navigation.gameObject.SetActive(true);
     }
 
     public void EndEpisode()
     {
         agent.SetActive(false);
+        navigation.gameObject.SetActive(false);
         agent.GetComponent<Agent>().EndEpisode();
         
         currentObstacles.Clear();
@@ -175,7 +193,7 @@ public class MapManager
             g.SetActive(false);
         }
 
-        StartEpisode();
+        // StartEpisode(isTrainingMode);
     }
 
     public void GenerateLevel(EnvData _env)

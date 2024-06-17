@@ -16,10 +16,12 @@ public class DataManager
     public List<EnvData> Pool;
 
     public Dictionary<int, EnvData> TrainingEnvs { get; private set; } = new Dictionary<int, EnvData>();
+    public Dictionary<int, EnvData> TestEnvs { get; private set; }
 
     public void Init()
     {
         TrainingEnvs = LoadJson<EnvLoader, int, EnvData>("EnvData").MakeDictionary();
+        TestEnvs = LoadJson<EnvLoader, int, EnvData>("TestData").MakeDictionary();
     }
 
     private Loader LoadJson<Loader, Key, Value>(string path) where Loader : ILoader<Key, Value>

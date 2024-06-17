@@ -5,11 +5,13 @@ using System.Linq;
 using Unity.Mathematics;
 using UnityEditor.Build.Reporting;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 public class EnvironManager
 {
     private List<MapManager> map;
     private GameObject root;
+    private Observer observer;
 
     public List<MapManager> Map { get { return map; } }
     public GameObject Root { get { return root; } }
@@ -24,6 +26,21 @@ public class EnvironManager
         {
             manager.Init();
         }
+    }
+
+    public void Observe()
+    {
+        root = new GameObject { name = "Env Root" };
+
+        map = GenerateMap(PositionsByLength(1));
+
+        foreach (var manager in map)
+        {
+            manager.Init();
+        }
+
+        observer = Managers.Resource.Instantiate("Prefabs/Observer").GetComponent<Observer>();
+        observer.Init(map[0].Agent, map[0].Target);
     }
 
     private List<MapManager> GenerateMap(List<(float, float)> _positions)

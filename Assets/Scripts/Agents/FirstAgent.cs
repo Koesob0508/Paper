@@ -16,8 +16,8 @@ public class FirstAgent : Agent
             return mapManager.Target;
         }
     }
-    [SerializeField]
     private List<float> rays;
+    public List<float> Rays { get { return rays; } }
     // Ray 최대 거리
     public float rayDistance = 10f;
 
@@ -47,7 +47,7 @@ public class FirstAgent : Agent
     private Ray rayLeft;
     private Ray rayFL;
 
-    
+
 
     // RayCast를 위한 변수들
     private RaycastHit raycastHit;
@@ -87,13 +87,13 @@ public class FirstAgent : Agent
 
         Vector3 _position = transform.position;
         Vector3 _vector = Vector3.zero;
-        
-        if(target != null)
+
+        if (target != null)
         {
             _position = transform.InverseTransformPoint(target.transform.position);
             _vector = target.transform.position - transform.position;
         }
-        
+
         sensor.AddObservation(new Vector2(_position.x, _position.z));
         sensor.AddObservation(new Vector2(_vector.x, _vector.z).normalized);
         sensor.AddObservation(new Vector2(_vector.x, _vector.z).magnitude);
@@ -153,7 +153,7 @@ public class FirstAgent : Agent
 
         if (other.gameObject.CompareTag("Path"))
         {
-            if(other.gameObject == target)
+            if (other.gameObject == target)
             {
                 AddReward(1);
 

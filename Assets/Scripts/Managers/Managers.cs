@@ -1,10 +1,13 @@
 using Codice.Client.BaseCommands.WkStatus.Printers;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 
 public class Managers : MonoBehaviour
 {
+    public int Count;
+    public bool IsObserveMode = false;
     static Managers s_instance;
     public static Managers Instance { get { Init(); return s_instance; } }
 
@@ -22,7 +25,6 @@ public class Managers : MonoBehaviour
     public static DataManager Data { get { return Instance._data; } }
     public static EnvironManager Env { get { return Instance._env; } }
     public static PathManager Path { get { return Instance._path; } }
-
 
     private void Start()
     {
@@ -45,7 +47,14 @@ public class Managers : MonoBehaviour
             s_instance = go.GetComponent<Managers>();
 
             s_instance._data.Init();
-            s_instance._env.Init(5);
+            if(s_instance.IsObserveMode)
+            {
+                s_instance._env.Observe();
+            }
+            else
+            {
+                s_instance._env.Init(Instance.Count);
+            }
 
             //foreach(EnvManager Env in Instance.Envs)
             //{
