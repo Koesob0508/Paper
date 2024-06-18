@@ -113,12 +113,12 @@ public class FirstAgent : Agent
 
         //var _ = target.transform.position - transform.position;
         //var _distance = (new Vector2(_.x, _.z)).magnitude;
-        
-        
+
+
 
         carController.horizontalInput = actions.ContinuousActions[0];
         carController.verticalInput = actions.ContinuousActions[1];
-        
+
         if (actions.ContinuousActions[2] > 0)
         {
             carController.currentBrake = actions.ContinuousActions[2];
@@ -160,9 +160,12 @@ public class FirstAgent : Agent
 
         if (other.gameObject.CompareTag("Path"))
         {
-            AddReward(1);
+            if (other.gameObject == target)
+            {
+                AddReward(1);
 
-            mapManager.OnArrival();
+                mapManager.OnArrival();
+            }
         }
     }
 
