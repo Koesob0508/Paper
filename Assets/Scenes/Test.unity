@@ -246,9 +246,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: be2e3f9feb329a341be4ca2236b25617, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Count: 1
+  Count: 7
   IsObserveMode: 0
-  Observer: {fileID: 0}
+  IsTrainingMode: 1
 --- !u!4 &1939298038
 Transform:
   m_ObjectHideFlags: 0

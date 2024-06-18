@@ -5,9 +5,11 @@ using Unity.MLAgents;
 using Unity.MLAgents.Actuators;
 using Unity.MLAgents.Sensors;
 using UnityEditorInternal;
+using UnityEngine.UIElements;
 
 public class FirstAgent : Agent
 {
+    public float targetDistance = 0.2f;
     [SerializeField]
     private GameObject target
     {
@@ -16,8 +18,7 @@ public class FirstAgent : Agent
             return mapManager.Target;
         }
     }
-    private List<float> rays;
-    public List<float> Rays { get { return rays; } }
+    public List<float> Rays;
     // Ray 최대 거리
     public float rayDistance = 10f;
 
@@ -98,9 +99,9 @@ public class FirstAgent : Agent
         sensor.AddObservation(new Vector2(_vector.x, _vector.z).normalized);
         sensor.AddObservation(new Vector2(_vector.x, _vector.z).magnitude);
 
-        rays = CastRay();
+        Rays = CastRay();
 
-        foreach (var ray in rays)
+        foreach (var ray in Rays)
         {
             sensor.AddObservation(ray / rayDistance);
         }
@@ -110,8 +111,19 @@ public class FirstAgent : Agent
     {
         AddReward(-0.01f);
 
+        var _ = target.transform.position - transform.position;
+        var _distance = (new Vector2(_.x, _.z)).magnitude;
+        
+        if (_distance < targetDistance)
+        {
+            AddReward(1);
+
+            mapManager.OnArrival();
+        }
+
         carController.horizontalInput = actions.ContinuousActions[0];
         carController.verticalInput = actions.ContinuousActions[1];
+        
         if (actions.ContinuousActions[2] > 0)
         {
             carController.currentBrake = actions.ContinuousActions[2];
@@ -149,16 +161,6 @@ public class FirstAgent : Agent
             mapManager.EndEpisode();
             //mapManager.StartEpisode();
             //EndEpisode();
-        }
-
-        if (other.gameObject.CompareTag("Path"))
-        {
-            if (other.gameObject == target)
-            {
-                AddReward(1);
-
-                mapManager.OnArrival();
-            }
         }
     }
 

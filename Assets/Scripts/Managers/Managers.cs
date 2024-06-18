@@ -8,6 +8,8 @@ public class Managers : MonoBehaviour
 {
     public int Count;
     public bool IsObserveMode = false;
+    public bool IsTrainingMode = true;
+
     static Managers s_instance;
     public static Managers Instance { get { Init(); return s_instance; } }
 

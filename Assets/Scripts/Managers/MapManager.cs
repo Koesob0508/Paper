@@ -40,8 +40,6 @@ public class MapManager
     private int[,] graph = new int[25, 25];
     private int[,] next = new int[25, 25];
 
-    private bool isTrainingMode = false;
-
     public GameObject Target
     {
         get
@@ -80,7 +78,7 @@ public class MapManager
         endList = new List<int>();
 
         InitializeLevel();
-        StartEpisode(isTrainingMode);
+        StartEpisode(Managers.Instance.IsTrainingMode);
     }
 
     public void InitializeLevel()
@@ -193,7 +191,7 @@ public class MapManager
             g.SetActive(false);
         }
 
-        // StartEpisode(isTrainingMode);
+        StartEpisode(Managers.Instance.IsTrainingMode);
     }
 
     public void GenerateLevel(EnvData _env)
