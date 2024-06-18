@@ -111,15 +111,10 @@ public class FirstAgent : Agent
     {
         AddReward(-0.01f);
 
-        var _ = target.transform.position - transform.position;
-        var _distance = (new Vector2(_.x, _.z)).magnitude;
+        //var _ = target.transform.position - transform.position;
+        //var _distance = (new Vector2(_.x, _.z)).magnitude;
         
-        if (_distance < targetDistance)
-        {
-            AddReward(1);
-
-            mapManager.OnArrival();
-        }
+        
 
         carController.horizontalInput = actions.ContinuousActions[0];
         carController.verticalInput = actions.ContinuousActions[1];
@@ -161,6 +156,13 @@ public class FirstAgent : Agent
             mapManager.EndEpisode();
             //mapManager.StartEpisode();
             //EndEpisode();
+        }
+
+        if (other.gameObject.CompareTag("Path"))
+        {
+            AddReward(1);
+
+            mapManager.OnArrival();
         }
     }
 
