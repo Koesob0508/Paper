@@ -7,7 +7,15 @@ using UnityEngine;
 public class Managers : MonoBehaviour
 {
     public int Count;
-    public bool IsObserveMode = false;
+    public int TrainingIndex = 0;
+    public bool IsRandom = true;
+    public int EnvIndex = 0;
+    public bool OnNavigation;
+    public bool OnUpdate;
+    public bool OnRecord;
+    public bool OnAnswer;
+    public int RecordLength = 10;
+
     static Managers s_instance;
     public static Managers Instance { get { Init(); return s_instance; } }
 
@@ -47,20 +55,7 @@ public class Managers : MonoBehaviour
             s_instance = go.GetComponent<Managers>();
 
             s_instance._data.Init();
-            if(s_instance.IsObserveMode)
-            {
-                s_instance._env.Observe();
-            }
-            else
-            {
-                s_instance._env.Init(Instance.Count);
-            }
-
-            //foreach(EnvManager Env in Instance.Envs)
-            //{
-            //    Env.InitializeLevel();
-            //    Env.StartEpisode();
-            //}
+            s_instance._env.Init(Instance.Count);
         }
     }
 

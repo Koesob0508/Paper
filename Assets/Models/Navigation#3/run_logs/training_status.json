@@ -1,0 +1,123 @@
+{
+    "Paper": {
+        "checkpoints": [
+            {
+                "steps": 499999,
+                "file_path": "results\\Navigation#3\\Paper\\Paper-499999.onnx",
+                "reward": -1.9999996423721313,
+                "creation_time": 1718894347.174225,
+                "auxillary_file_paths": [
+                    "results\\Navigation#3\\Paper\\Paper-499999.pt"
+                ]
+            },
+            {
+                "steps": 999999,
+                "file_path": "results\\Navigation#3\\Paper\\Paper-999999.onnx",
+                "reward": -1.9928354641691368,
+                "creation_time": 1718895156.1261208,
+                "auxillary_file_paths": [
+                    "results\\Navigation#3\\Paper\\Paper-999999.pt"
+                ]
+            },
+            {
+                "steps": 1499987,
+                "file_path": "results\\Navigation#3\\Paper\\Paper-1499987.onnx",
+                "reward": -1.3615756890990518,
+                "creation_time": 1718896022.6507745,
+                "auxillary_file_paths": [
+                    "results\\Navigation#3\\Paper\\Paper-1499987.pt"
+                ]
+            },
+            {
+                "steps": 1999996,
+                "file_path": "results\\Navigation#3\\Paper\\Paper-1999996.onnx",
+                "reward": -1.0908633364354325,
+                "creation_time": 1718897229.5865948,
+                "auxillary_file_paths": [
+                    "results\\Navigation#3\\Paper\\Paper-1999996.pt"
+                ]
+            },
+            {
+                "steps": 2378877,
+                "file_path": "results\\Navigation#3\\Paper\\Paper-2378877.onnx",
+                "reward": -1.042303611938866,
+                "creation_time": 1718941934.1340718,
+                "auxillary_file_paths": [
+                    "results\\Navigation#3\\Paper\\Paper-2378877.pt"
+                ]
+            }
+        ],
+        "final_checkpoint": {
+            "steps": 2378877,
+            "file_path": "results\\Navigation#3\\Paper.onnx",
+            "reward": -1.042303611938866,
+            "creation_time": 1718941934.1340718,
+            "auxillary_file_paths": [
+                "results\\Navigation#3\\Paper\\Paper-2378877.pt"
+            ]
+        }
+    },
+    "Navigation": {
+        "checkpoints": [
+            {
+                "steps": 30499996,
+                "file_path": "results\\Navigation#3\\Navigation\\Navigation-30499996.onnx",
+                "reward": 1.8332480288337212,
+                "creation_time": 1718939297.8961055,
+                "auxillary_file_paths": [
+                    "results\\Navigation#3\\Navigation\\Navigation-30499996.pt"
+                ]
+            },
+            {
+                "steps": 30999995,
+                "file_path": "results\\Navigation#3\\Navigation\\Navigation-30999995.onnx",
+                "reward": 1.8315141018705838,
+                "creation_time": 1718940136.84558,
+                "auxillary_file_paths": [
+                    "results\\Navigation#3\\Navigation\\Navigation-30999995.pt"
+                ]
+            },
+            {
+                "steps": 31499997,
+                "file_path": "results\\Navigation#3\\Navigation\\Navigation-31499997.onnx",
+                "reward": 1.8303065743927431,
+                "creation_time": 1718940933.9331834,
+                "auxillary_file_paths": [
+                    "results\\Navigation#3\\Navigation\\Navigation-31499997.pt"
+                ]
+            },
+            {
+                "steps": 31999983,
+                "file_path": "results\\Navigation#3\\Navigation\\Navigation-31999983.onnx",
+                "reward": 1.8271264736714803,
+                "creation_time": 1718941704.802242,
+                "auxillary_file_paths": [
+                    "results\\Navigation#3\\Navigation\\Navigation-31999983.pt"
+                ]
+            },
+            {
+                "steps": 32145895,
+                "file_path": "results\\Navigation#3\\Navigation\\Navigation-32145895.onnx",
+                "reward": 1.8248080746230917,
+                "creation_time": 1718941933.955072,
+                "auxillary_file_paths": [
+                    "results\\Navigation#3\\Navigation\\Navigation-32145895.pt"
+                ]
+            }
+        ],
+        "final_checkpoint": {
+            "steps": 32145895,
+            "file_path": "results\\Navigation#3\\Navigation.onnx",
+            "reward": 1.8248080746230917,
+            "creation_time": 1718941933.955072,
+            "auxillary_file_paths": [
+                "results\\Navigation#3\\Navigation\\Navigation-32145895.pt"
+            ]
+        }
+    },
+    "metadata": {
+        "stats_format_version": "0.3.0",
+        "mlagents_version": "1.0.0",
+        "torch_version": "2.2.2+cu121"
+    }
+}

@@ -12,8 +12,9 @@ public class MapManager
 
     private GameObject agent;
     public GameObject Agent { get { return agent; } }
-    private Navigation navigation;
-    private GameObject end;
+    public Navigation Navigation;
+    public Observer Observer;
+    // private GameObject end;
 
     private GameObject floor;
     private GameObject wall;
@@ -39,8 +40,22 @@ public class MapManager
 
     private int[,] graph = new int[25, 25];
     private int[,] next = new int[25, 25];
+    public float elapsedTime = 0f;
 
-    private bool isTrainingMode = false;
+    public GameObject Destination
+    {
+        get
+        {
+            if(Navigation == null)
+            {
+                return Target;
+            }
+            else
+            {
+                return Navigation.Target;
+            }
+        }
+    }
 
     public GameObject Target
     {
@@ -73,6 +88,8 @@ public class MapManager
         guide = new GameObject { name = "guide" };
         guide.transform.SetParent(root.transform);
 
+        Observer = Managers.Resource.Instantiate("Prefabs/Observer", root.transform).GetComponent<Observer>();
+
         currentObstacles = new List<int>();
         currentGuides = new List<int>();
         emptyList = new List<int>();
@@ -80,7 +97,7 @@ public class MapManager
         endList = new List<int>();
 
         InitializeLevel();
-        StartEpisode(isTrainingMode);
+        StartEpisode(Managers.Instance.TrainingIndex, Managers.Instance.IsRandom);
     }
 
     public void InitializeLevel()
@@ -146,54 +163,82 @@ public class MapManager
         agent = Managers.Resource.Instantiate("Prefabs/Agent", root.transform);
         agent.GetComponent<FirstAgent>().mapManager = this;
         agent.SetActive(false);
-
-        navigation = Managers.Resource.Instantiate("Prefabs/Navigation", root.transform).GetComponent<Navigation>();
-        navigation.mapManager = this;
-        navigation.gameObject.SetActive(false);
     }
 
-    public void StartEpisode(bool _isTrainingMode = true)
+    public void StartEpisode(int _trainingIndex, bool _isRandom = true)
     {
-        if (_isTrainingMode)
+        List<EnvData> values = new List<EnvData>();
+        int randomIndex = 0;
+        switch (_trainingIndex)
         {
-            var values = Managers.Data.TrainingEnvs.Values.ToList();
-            int randomIndex = Random.Range(0, values.Count);
+            case 0:
+                values = Managers.Data.TestEnvs.Values.ToList();
+                break;
+            case 1:
+                values = Managers.Data.TrainingEnvs.Values.ToList();
+                break;
+            case 2:
+                values = Managers.Data.SecondEnvs.Values.ToList();
+                break;
+            default:
+                break;
+        }
 
+        if (Managers.Instance.IsRandom)
+        {
+            randomIndex = Random.Range(0, values.Count);
             GenerateLevel(values[randomIndex]);
         }
         else
         {
-            var values = Managers.Data.TestEnvs.Values.ToList();
-            int randomIndex = Random.Range(0, values.Count);
 
-            GenerateLevel(values[1]);
+            GenerateLevel(values[Managers.Instance.EnvIndex]);
         }
 
-        navigation.gameObject.SetActive(true);
+        // 여기로 navigation만 옮기자
+
+        Observer.Init(currentEnv, agent, Target);
+
+        if (Navigation == null)
+        {
+            Navigation = Managers.Resource.Instantiate("Prefabs/Navigation", root.transform).GetComponent<Navigation>();
+            Navigation.mapManager = this;
+        }
+        else
+        {
+            Navigation.gameObject.SetActive(true);
+        }
+
+        elapsedTime = Time.time;
     }
 
-    public void EndEpisode()
+    public void EndEpisode(bool _isSuccess)
     {
+        elapsedTime = Time.time - elapsedTime;
+
         agent.SetActive(false);
-        navigation.gameObject.SetActive(false);
+        Navigation.EndEpisode();
+        Navigation.gameObject.SetActive(false);
+
+        Observer.EndObserve(_isSuccess, elapsedTime);
         agent.GetComponent<Agent>().EndEpisode();
-        
+
         currentObstacles.Clear();
         emptyList.Clear();
         startList.Clear();
         endList.Clear();
 
-        foreach(var o in obstacles)
+        foreach (var o in obstacles)
         {
             o.SetActive(false);
         }
 
-        foreach(var g in guides)
+        foreach (var g in guides)
         {
             g.SetActive(false);
         }
 
-        // StartEpisode(isTrainingMode);
+        StartEpisode(Managers.Instance.TrainingIndex, Managers.Instance.IsRandom);
     }
 
     public void GenerateLevel(EnvData _env)
@@ -214,7 +259,7 @@ public class MapManager
     private void ReadEnv(EnvData _env)
     {
         currentEnv = _env;
-        
+
 
         int obstacleIndex = 0;
 
@@ -222,7 +267,7 @@ public class MapManager
         {
             foreach (int status in row)
             {
-                switch(status)
+                switch (status)
                 {
                     case -1:
                         currentObstacles.Add(obstacleIndex);
@@ -256,7 +301,7 @@ public class MapManager
 
     private void SetAgentTransform()
     {
-        if(startList.Count != 0)
+        if (startList.Count != 0)
         {
             int randomIndex = Random.Range(0, startList.Count);
             startIndex = startList[randomIndex];
@@ -265,7 +310,7 @@ public class MapManager
         {
             int randomIndex = Random.Range(0, emptyList.Count);
             startIndex = emptyList[randomIndex];
-            
+
             emptyList.Remove(startIndex);
         }
 
@@ -298,7 +343,7 @@ public class MapManager
 
     private void SetEndPosition()
     {
-        if(endList.Count != 0)
+        if (endList.Count != 0)
         {
             int randomIndex = Random.Range(0, endList.Count);
             endIndex = endList[randomIndex];
@@ -311,7 +356,7 @@ public class MapManager
             emptyList.Remove(endIndex);
         }
 
-        end = guides[endIndex];
+        //end = guides[endIndex];
         // end.transform.rotation = Quaternion.Euler(90f, 0, 0);
         //end.SetActive(true);
     }
@@ -423,9 +468,9 @@ public class MapManager
     private void ShowGuides()
     {
 
-        for(int i = 0; i < currentGuides.Count; i++)
+        for (int i = 0; i < currentGuides.Count; i++)
         {
-            if(i == currentGuides.Count-1)
+            if (i == currentGuides.Count - 1)
             {
                 guides[currentGuides[i]].transform.rotation = Quaternion.Euler(-90f, 0, 0);
             }
@@ -433,7 +478,7 @@ public class MapManager
             {
                 // 방향 계산...
                 Vector3 current = guides[currentGuides[i]].transform.position;
-                Vector3 next = guides[currentGuides[i+1]].transform.position;
+                Vector3 next = guides[currentGuides[i + 1]].transform.position;
                 Vector3 _ = (next - current).normalized;
                 Vector2 direction = new Vector2(_.x, _.z);
                 float angle = Mathf.Atan2(direction.x, direction.y) * Mathf.Rad2Deg;
@@ -445,14 +490,28 @@ public class MapManager
         }
     }
 
-    public void OnArrival()
+    public void OnArrival(GameObject _object)
     {
-        Target.SetActive(false);
-        currentGuides.RemoveAt(0);
-
-        if(currentGuides.Count == 0)
+        if(_object == Target)
         {
-            EndEpisode();
+            Target.SetActive(false);
+            currentGuides.RemoveAt(0);
+
+            Navigation.EndEpisode();
+            Navigation.gameObject.SetActive(false);
+        }
+        else
+        {
+            Navigation.OnArrival(_object);
+        }
+
+        if (currentGuides.Count == 0)
+        {
+            EndEpisode(true);
+        }
+        else
+        {
+            Navigation.gameObject.SetActive(true);
         }
     }
 }

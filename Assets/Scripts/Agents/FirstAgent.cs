@@ -5,19 +5,20 @@ using Unity.MLAgents;
 using Unity.MLAgents.Actuators;
 using Unity.MLAgents.Sensors;
 using UnityEditorInternal;
+using UnityEngine.UIElements;
 
 public class FirstAgent : Agent
 {
+    public float targetDistance = 0.2f;
     [SerializeField]
-    private GameObject target
+    private GameObject destination
     {
         get
         {
-            return mapManager.Target;
+            return mapManager.Destination;
         }
     }
-    private List<float> rays;
-    public List<float> Rays { get { return rays; } }
+    public List<float> Rays;
     // Ray 최대 거리
     public float rayDistance = 10f;
 
@@ -88,19 +89,19 @@ public class FirstAgent : Agent
         Vector3 _position = transform.position;
         Vector3 _vector = Vector3.zero;
 
-        if (target != null)
+        if (destination != null)
         {
-            _position = transform.InverseTransformPoint(target.transform.position);
-            _vector = target.transform.position - transform.position;
+            _position = transform.InverseTransformPoint(destination.transform.position);
+            _vector = destination.transform.position - transform.position;
         }
 
         sensor.AddObservation(new Vector2(_position.x, _position.z));
         sensor.AddObservation(new Vector2(_vector.x, _vector.z).normalized);
         sensor.AddObservation(new Vector2(_vector.x, _vector.z).magnitude);
 
-        rays = CastRay();
+        Rays = CastRay();
 
-        foreach (var ray in rays)
+        foreach (var ray in Rays)
         {
             sensor.AddObservation(ray / rayDistance);
         }
@@ -108,10 +109,11 @@ public class FirstAgent : Agent
 
     public override void OnActionReceived(ActionBuffers actions)
     {
-        AddReward(-0.01f);
+        AddReward(-0.02f);
 
         carController.horizontalInput = actions.ContinuousActions[0];
         carController.verticalInput = actions.ContinuousActions[1];
+
         if (actions.ContinuousActions[2] > 0)
         {
             carController.currentBrake = actions.ContinuousActions[2];
@@ -139,25 +141,25 @@ public class FirstAgent : Agent
         }
     }
 
-    private void OnTriggerEnter(Collider other)
+    private void OnTriggerStay(Collider other)
     {
         if (other.gameObject.CompareTag("Obstacle"))
         {
             AddReward(-1);
 
             gameObject.SetActive(false);
-            mapManager.EndEpisode();
+            mapManager.EndEpisode(false);
             //mapManager.StartEpisode();
             //EndEpisode();
         }
 
         if (other.gameObject.CompareTag("Path"))
         {
-            if (other.gameObject == target)
+            if (other.gameObject == destination)
             {
                 AddReward(1);
 
-                mapManager.OnArrival();
+                mapManager.OnArrival(other.gameObject);
             }
         }
     }
@@ -165,7 +167,7 @@ public class FirstAgent : Agent
     /// <summary>
     /// Ray Cast 후 거리 관측, 아무것도 관측되지 않은 경우, 10으로
     /// </summary>
-    private List<float> CastRay()
+    public List<float> CastRay()
     {
         List<float> result = new List<float>();
         List<bool> hit = new List<bool>();

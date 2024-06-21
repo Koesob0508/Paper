@@ -15,13 +15,28 @@ public class DataManager
 {
     public List<EnvData> Pool;
 
-    public Dictionary<int, EnvData> TrainingEnvs { get; private set; } = new Dictionary<int, EnvData>();
+    public Dictionary<int, EnvData> TrainingEnvs { get; private set; }
     public Dictionary<int, EnvData> TestEnvs { get; private set; }
-
+    public Dictionary<int, EnvData> SecondEnvs { get; private set; }
+    public Dictionary<string, TrajectoryData> Trajectory { get; private set; }
+    public Dictionary<string, TrajectoryData> LastTrajectory { get; private set; }
     public void Init()
     {
         TrainingEnvs = LoadJson<EnvLoader, int, EnvData>("EnvData").MakeDictionary();
         TestEnvs = LoadJson<EnvLoader, int, EnvData>("TestData").MakeDictionary();
+        SecondEnvs = LoadJson<EnvLoader, int, EnvData>("SecondEnv").MakeDictionary();
+        Trajectory = LoadJsonFrom<TrajectoryLoader, string, TrajectoryData>("TrajectoryData").MakeDictionary();
+        LastTrajectory = LoadJsonFrom<TrajectoryLoader, string, TrajectoryData>("LastTrajectoryData").MakeDictionary();
+    }
+
+    public void UpdateTrajectory(TrajectoryLoader _loader)
+    {
+        Trajectory = _loader.MakeDictionary();
+    }
+
+    public void UpdateLastTrajectory(TrajectoryLoader _loader)
+    {
+        LastTrajectory = _loader.MakeDictionary();
     }
 
     private Loader LoadJson<Loader, Key, Value>(string path) where Loader : ILoader<Key, Value>
@@ -30,12 +45,13 @@ public class DataManager
         return JsonConvert.DeserializeObject<Loader>(textAsset.text);
     }
 
-    private T LoadJsonFile<T>(string loadPath, string fileName)
+    public Loader LoadJsonFrom<Loader, Key, Value>(string path) where Loader : ILoader<Key, Value>
     {
-        FileStream fileStream = new FileStream(string.Format("{0}/{1}.json", loadPath, fileName), FileMode.Open);
-        byte[] data = new byte[fileStream.Length];
-        fileStream.Read(data, 0, data.Length);
-        fileStream.Close(); string jsonData = Encoding.UTF8.GetString(data);
-        return JsonConvert.DeserializeObject<T>(jsonData);
+        return Managers.Resource.LoadJsonFromFile<Loader>($"Data/{path}");
+    }
+
+    public void SaveJsonTo<T>(T data, string fileName)
+    {
+        Managers.Resource.SaveJsonToFile(data, $"Data/{fileName}");
     }
 }

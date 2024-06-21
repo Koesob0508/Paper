@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿using System.IO;
+using UnityEngine;
+using Newtonsoft.Json;
 
 public class ResourceManager
 {
@@ -18,6 +20,38 @@ public class ResourceManager
         }
 
         return Resources.Load<T>(path);
+    }
+
+    public void SaveJsonToFile<T>(T data, string fileName)
+    {
+        // persistentDataPath 경로 설정
+        string path = Application.persistentDataPath + "/" + fileName + ".json";
+
+        // JSON 데이터 직렬화
+        string jsonData = JsonConvert.SerializeObject(data, Formatting.Indented);
+
+        // 파일에 저장
+        File.WriteAllText(path, jsonData);
+    }
+
+    public T LoadJsonFromFile<T>(string fileName)
+    {
+        // persistentDataPath 내 파일 경로 설정
+        string path = Application.persistentDataPath + "/" + fileName + ".json";
+
+        if (File.Exists(path))
+        {
+            
+            // 파일에서 JSON 데이터 읽기
+            string jsonData = File.ReadAllText(path);
+
+            // JSON 데이터 역직렬화
+            return JsonUtility.FromJson<T>(jsonData);
+            //return JsonConvert.DeserializeObject<T>(jsonData);
+        }
+
+        Debug.LogWarning($"File not found: {path}");
+        return default;
     }
 
     public GameObject Instantiate(string path, Transform parent = null)
