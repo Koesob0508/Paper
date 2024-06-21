@@ -1,0 +1,65 @@
+{
+    "Paper": {
+        "checkpoints": [
+            {
+                "steps": 12499982,
+                "file_path": "results\\FirstAgent#4\\Paper\\Paper-12499982.onnx",
+                "reward": 0.970133448044459,
+                "creation_time": 1718804519.5306864,
+                "auxillary_file_paths": [
+                    "results\\FirstAgent#4\\Paper\\Paper-12499982.pt"
+                ]
+            },
+            {
+                "steps": 12999989,
+                "file_path": "results\\FirstAgent#4\\Paper\\Paper-12999989.onnx",
+                "reward": 1.0553601198196412,
+                "creation_time": 1718805139.3920074,
+                "auxillary_file_paths": [
+                    "results\\FirstAgent#4\\Paper\\Paper-12999989.pt"
+                ]
+            },
+            {
+                "steps": 13499945,
+                "file_path": "results\\FirstAgent#4\\Paper\\Paper-13499945.onnx",
+                "reward": 1.0613966215578399,
+                "creation_time": 1718805757.5600092,
+                "auxillary_file_paths": [
+                    "results\\FirstAgent#4\\Paper\\Paper-13499945.pt"
+                ]
+            },
+            {
+                "steps": 13999940,
+                "file_path": "results\\FirstAgent#4\\Paper\\Paper-13999940.onnx",
+                "reward": 1.028205245078265,
+                "creation_time": 1718806371.4052782,
+                "auxillary_file_paths": [
+                    "results\\FirstAgent#4\\Paper\\Paper-13999940.pt"
+                ]
+            },
+            {
+                "steps": 14166236,
+                "file_path": "results\\FirstAgent#4\\Paper\\Paper-14166236.onnx",
+                "reward": null,
+                "creation_time": 1718806583.3761058,
+                "auxillary_file_paths": [
+                    "results\\FirstAgent#4\\Paper\\Paper-14166236.pt"
+                ]
+            }
+        ],
+        "final_checkpoint": {
+            "steps": 14166236,
+            "file_path": "results\\FirstAgent#4\\Paper.onnx",
+            "reward": null,
+            "creation_time": 1718806583.3761058,
+            "auxillary_file_paths": [
+                "results\\FirstAgent#4\\Paper\\Paper-14166236.pt"
+            ]
+        }
+    },
+    "metadata": {
+        "stats_format_version": "0.3.0",
+        "mlagents_version": "1.0.0",
+        "torch_version": "2.2.2+cu121"
+    }
+}

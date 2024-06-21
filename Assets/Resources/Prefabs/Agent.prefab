@@ -358,9 +358,9 @@ MonoBehaviour:
     VectorActionDescriptions: []
     VectorActionSpaceType: 1
     hasUpgradedBrainParametersWithActionSpec: 1
-  m_Model: {fileID: 5022602860645237092, guid: 60eb5bb127f68d34e8d884e2ffc72eee, type: 3}
+  m_Model: {fileID: 5022602860645237092, guid: d47274e77d0297b4aa4130c2657891d5, type: 3}
   m_InferenceDevice: 0
-  m_BehaviorType: 0
+  m_BehaviorType: 2
   m_BehaviorName: Paper
   TeamId: 0
   m_UseChildSensors: 1
@@ -425,7 +425,7 @@ MonoBehaviour:
   agentParameters:
     maxStep: 0
   hasUpgradedFromAgentParameters: 1
-  MaxStep: 5000
+  MaxStep: 500
   targetDistance: 0.2
   Rays: []
   rayDistance: 10

@@ -11,7 +11,6 @@ public class EnvironManager
 {
     private List<MapManager> map;
     private GameObject root;
-    private Observer observer;
 
     public List<MapManager> Map { get { return map; } }
     public GameObject Root { get { return root; } }
@@ -26,21 +25,6 @@ public class EnvironManager
         {
             manager.Init();
         }
-    }
-
-    public void Observe()
-    {
-        root = new GameObject { name = "Env Root" };
-
-        map = GenerateMap(PositionsByLength(1));
-
-        foreach (var manager in map)
-        {
-            manager.Init();
-        }
-
-        observer = Managers.Resource.Instantiate("Prefabs/Observer").GetComponent<Observer>();
-        observer.Init(map[0].Agent, map[0].Target);
     }
 
     private List<MapManager> GenerateMap(List<(float, float)> _positions)
@@ -95,5 +79,49 @@ public class EnvironManager
                 break;
         }
         return result;
+    }
+
+    public void UpdateRecord(string _guid, float _time, List<Vector2> _trajectory)
+    {
+        TrajectoryData data = new TrajectoryData();
+        data.GUID = _guid;
+        data.BestTime = _time;
+        data.BestTrajectoryX = new List<float>();
+        data.BestTrajectoryY = new List<float>();
+
+        foreach(var trajectory in _trajectory)
+        {
+            data.BestTrajectoryX.Add(trajectory.x);
+            data.BestTrajectoryY.Add(trajectory.y);
+        }
+
+        if(_trajectory.Count < 5)
+        {
+            for(int i = 0; i < 5 - _trajectory.Count; i++)
+            {
+                data.BestTrajectoryX.Add(0f);
+                data.BestTrajectoryY.Add(0f);
+            }
+        }
+
+        if(Managers.Data.Trajectory.TryGetValue(_guid, out var _t))
+        {
+            if(_t.BestTime > _time)
+            {
+                Managers.Data.Trajectory[_guid] = data;
+                TrajectoryLoader loader = new TrajectoryLoader();
+                loader.Records = Managers.Data.Trajectory.Values.ToList();
+                Managers.Data.UpdateTrajectory(loader);
+                Managers.Data.SaveJsonTo(loader, "TrajectoryData");
+            }
+        }
+        else
+        {
+            Managers.Data.Trajectory.Add(_guid, data);
+            TrajectoryLoader loader = new TrajectoryLoader();
+            loader.Records = Managers.Data.Trajectory.Values.ToList();
+            Managers.Data.UpdateTrajectory(loader);
+            Managers.Data.SaveJsonTo(loader, "TrajectoryData");
+        }
     }
 }
