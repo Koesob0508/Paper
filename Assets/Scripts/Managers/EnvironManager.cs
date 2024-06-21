@@ -124,4 +124,45 @@ public class EnvironManager
             Managers.Data.SaveJsonTo(loader, "TrajectoryData");
         }
     }
+
+    public void UpdateLastRecord(string _guid, List<Vector2> _trajectory)
+    {
+        TrajectoryData data = new TrajectoryData();
+        data.GUID = _guid;
+        data.BestTime = 0f;
+        data.BestTrajectoryX = new List<float>();
+        data.BestTrajectoryY = new List<float>();
+
+        foreach (var trajectory in _trajectory)
+        {
+            data.BestTrajectoryX.Add(trajectory.x);
+            data.BestTrajectoryY.Add(trajectory.y);
+        }
+
+        if (_trajectory.Count < Managers.Instance.RecordLength)
+        {
+            for (int i = 0; i < Managers.Instance.RecordLength - _trajectory.Count; i++)
+            {
+                data.BestTrajectoryX.Add(0f);
+                data.BestTrajectoryY.Add(0f);
+            }
+        }
+
+        if (Managers.Data.LastTrajectory.TryGetValue(_guid, out var _t))
+        {
+                Managers.Data.LastTrajectory[_guid] = data;
+                TrajectoryLoader loader = new TrajectoryLoader();
+                loader.Records = Managers.Data.LastTrajectory.Values.ToList();
+                Managers.Data.UpdateLastTrajectory(loader);
+                Managers.Data.SaveJsonTo(loader, "LastTrajectoryData");
+        }
+        else
+        {
+            Managers.Data.LastTrajectory.Add(_guid, data);
+            TrajectoryLoader loader = new TrajectoryLoader();
+            loader.Records = Managers.Data.LastTrajectory.Values.ToList();
+            Managers.Data.UpdateLastTrajectory(loader);
+            Managers.Data.SaveJsonTo(loader, "LastTrajectoryData");
+        }
+    }
 }

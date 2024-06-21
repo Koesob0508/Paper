@@ -20,6 +20,7 @@ public class Navigation : Agent
     public List<Vector2> correctTrajectory;
     private List<GameObject> currentGuides;
 
+    public GameObject[] lastTrajectory;
     public GameObject[] answer;
 
     public GameObject[] navi;
@@ -53,9 +54,17 @@ public class Navigation : Agent
 
     protected override void Awake()
     {
+        lastTrajectory = new GameObject[Managers.Instance.RecordLength];
+
         answer = new GameObject[5];
 
         navi = new GameObject[10];
+
+        for(int i = 0; i < Managers.Instance.RecordLength; i++)
+        {
+            lastTrajectory[i] = Managers.Resource.Instantiate("Prefabs/LastNavi", transform);
+            lastTrajectory[i].SetActive(false);
+        }
 
         for (int i = 0; i < 5; i++)
         {
@@ -164,6 +173,48 @@ public class Navigation : Agent
 
         if (isFirstAction)
         {
+            // LastTrajectory 복구
+            Managers.Data.LastTrajectory.TryGetValue(mapManager.Observer.CurrentKey, out var _lastTrajectory);
+            
+            for(int i = 0; i < _lastTrajectory.BestTrajectoryX.Count; i++)
+            {
+                var _ = mapManager.Target.transform.position;
+                Vector3 position = new Vector3(_.x + _lastTrajectory.BestTrajectoryX[i], 1f, _.z + _lastTrajectory.BestTrajectoryY[i]);
+
+                lastTrajectory[i].transform.position = position;
+
+                if (_lastTrajectory.BestTrajectoryX[i] == 0 && _lastTrajectory.BestTrajectoryY[i] == 0)
+                {
+                    lastTrajectory[i].SetActive(false);
+                    continue;
+                }
+
+                lastTrajectory[i].SetActive(true);
+            }
+
+            for (int i = 0; i < Managers.Instance.RecordLength; i++)
+            {
+                if (i == Managers.Instance.RecordLength - 1)
+                {
+                    var current = lastTrajectory[i].transform.position;
+                    var next = mapManager.Target.transform.position;
+                    var normal = (next - current).normalized;
+                    var direction = new Vector2(normal.x, normal.z);
+                    float angle = Mathf.Atan2(direction.x, direction.y) * Mathf.Rad2Deg;
+
+                    lastTrajectory[i].transform.rotation = Quaternion.Euler(0, angle, 0);
+                }
+                else
+                {
+                    var current = lastTrajectory[i].transform.position;
+                    var next = lastTrajectory[i + 1].transform.position;
+                    var normal = (next - current).normalized;
+                    var direction = new Vector2(normal.x, normal.z);
+                    float angle = Mathf.Atan2(direction.x, direction.y) * Mathf.Rad2Deg;
+
+                    lastTrajectory[i].transform.rotation = Quaternion.Euler(0, angle, 0);
+                }
+            }
             // correctAnswer부터 먼저 깔아보자.
             for (int i = 0; i < 5; i++)
             {
@@ -178,6 +229,8 @@ public class Navigation : Agent
 
                 answer[i].transform.position = position;
             }
+
+
 
             for(int i = 0; i < 5; i++)
             {

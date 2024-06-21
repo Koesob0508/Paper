@@ -6,7 +6,9 @@ public class Observer : MonoBehaviour
 {
     public float BestRecord;
     public List<Vector2> BestTrajectory;
+    public List<Vector2> LastList;
     public MaxLengthQueue<Vector2> Trajectory;
+    public MaxLengthQueue<Vector2> LastTrajectory;
     public bool IsInit = false;
     public GameObject Agent;
     public GameObject Target;
@@ -16,6 +18,7 @@ public class Observer : MonoBehaviour
     void Start()
     {
         Trajectory = new MaxLengthQueue<Vector2>(5);
+        LastTrajectory = new MaxLengthQueue<Vector2>(Managers.Instance.RecordLength);
     }
 
     // Update is called once per frame
@@ -39,6 +42,20 @@ public class Observer : MonoBehaviour
                 Trajectory.Enqueue(position);
             }
         }
+
+        if(LastTrajectory.Count == 0)
+        {
+            LastTrajectory.Enqueue(position);
+        }
+        else
+        {
+            float distance = Vector2.Distance(position, LastTrajectory.GetLastElement());
+
+            if(distance > 0.2)
+            {
+                LastTrajectory.Enqueue(position);
+            }
+        }
     }
 
     public void Init(EnvData _env, GameObject _agent, GameObject _target)
@@ -59,8 +76,15 @@ public class Observer : MonoBehaviour
         if (!_isSuccess)
         {
             Trajectory.Clear();
+            LastTrajectory.Clear();
 
             return;
+        }
+
+        if(Managers.Instance.OnRecord)
+        {
+            LastList = LastTrajectory.ToList();
+            Managers.Env.UpdateLastRecord(CurrentKey, LastList);
         }
 
         if (BestTrajectory.Count == 0)
@@ -88,5 +112,6 @@ public class Observer : MonoBehaviour
         }
 
         Trajectory.Clear();
+        LastTrajectory.Clear();
     }
 }

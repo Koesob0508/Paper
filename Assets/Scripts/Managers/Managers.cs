@@ -12,7 +12,9 @@ public class Managers : MonoBehaviour
     public int EnvIndex = 0;
     public bool OnNavigation;
     public bool OnUpdate;
+    public bool OnRecord;
     public bool OnAnswer;
+    public int RecordLength = 10;
 
     static Managers s_instance;
     public static Managers Instance { get { Init(); return s_instance; } }

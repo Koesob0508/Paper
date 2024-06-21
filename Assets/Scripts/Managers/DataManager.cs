@@ -26,11 +26,17 @@ public class DataManager
         TestEnvs = LoadJson<EnvLoader, int, EnvData>("TestData").MakeDictionary();
         SecondEnvs = LoadJson<EnvLoader, int, EnvData>("SecondEnv").MakeDictionary();
         Trajectory = LoadJsonFrom<TrajectoryLoader, string, TrajectoryData>("TrajectoryData").MakeDictionary();
+        LastTrajectory = LoadJsonFrom<TrajectoryLoader, string, TrajectoryData>("LastTrajectoryData").MakeDictionary();
     }
 
     public void UpdateTrajectory(TrajectoryLoader _loader)
     {
         Trajectory = _loader.MakeDictionary();
+    }
+
+    public void UpdateLastTrajectory(TrajectoryLoader _loader)
+    {
+        LastTrajectory = _loader.MakeDictionary();
     }
 
     private Loader LoadJson<Loader, Key, Value>(string path) where Loader : ILoader<Key, Value>
